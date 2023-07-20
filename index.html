@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Live Text Editor</title>
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script>
+var typingTimer;
+var doneTypingInterval = 1000;
+var isTyping = false;
+var buffer = "";
+var charCount = 0; // New variable to track character count
+
+function updateLiveText() {
+    $.ajax({
+        url: "update.php",
+        type: "GET",
+        success: function (data) {
+            if (!isTyping) {
+                $("#live-text").val(data);
+            }
+        },
+        error: function () {
+            alert("Error updating live text.");
+        }
+    });
+}
+
+function sendUpdate(content) {
+    $.ajax({
+        url: "update.php",
+        type: "POST",
+        data: { content: content },
+        success: function () {
+            // Success, no need to do anything here
+        },
+        error: function () {
+            alert("Error updating live text.");
+        }
+    });
+}
+
+function doneTyping() {
+    isTyping = false;
+    var content = $("#live-text").val();
+    sendUpdate(content);
+    }
+
+function handleInput() {
+    isTyping = true;
+    buffer = $("#live-text").val();
+    clearTimeout(typingTimer);
+    typingTimer = setTimeout(doneTyping, doneTypingInterval);
+    charCount += buffer.length; // Increment character count
+}
+
+function refreshLiveText() {
+    updateLiveText();
+    setTimeout(refreshLiveText, 2000);
+}
+
+$(document).ready(function () {
+    refreshLiveText();
+
+    setTimeout(function() {
+        updateLiveText();
+    }, 1000);
+
+    var textarea = document.getElementById("live-text");
+    textarea.addEventListener("input", function () {
+        handleInput();
+    });
+});
+    </script>
+</head>
+<body>
+    <div style="text-align: center;">
+    <img style="margin-left: auto; margin-right: auto;"src="/LiveHTML.png">
+    <br/>
+    <a href="/text">Go ahead, visit the website.</a>
+    <br/>
+    <textarea style="font-family: 'Courier New', Courier, monospace;"id="live-text" rows="50" cols="100"></textarea>
+</div>
+</body>
+</html>
